@@ -107,7 +107,11 @@
           elementSize = { height: $element.height(), width: $element.width() },
           elementOffset = $element.offset(),
           inView = $element.data('inview'),
-          distance = $element.data('offset') === undefined ? 0 : $element.data('offset'),
+          offset_top = $element.data('offset-top') || 0,
+          offset_bottom = $element.data('offset-bottom') || 0,
+          offset_left = $element.data('offset-left') || 0,
+          offset_right = $element.data('offset-right') || 0,
+          offset = $element.data('offset') || 0,
           visiblePartX,
           visiblePartY,
           visiblePartsMerged;
@@ -121,15 +125,20 @@
           return;
         }
 
-        if (elementOffset.top + elementSize.height + distance > viewportOffset.top &&
-          elementOffset.top < viewportOffset.top + viewportSize.height + distance &&
-          elementOffset.left + elementSize.width + distance > viewportOffset.left &&
-          elementOffset.left < viewportOffset.left + viewportSize.width + distance) {
-          visiblePartX = (viewportOffset.left > elementOffset.left + distance ?
-            'right' : (viewportOffset.left + viewportSize.width) < (elementOffset.left + elementSize.width + distance) ?
+        var top = elementOffset.top + offset + offset_top,
+          bottom = elementOffset.top + elementSize.height + offset + offset_bottom,
+          left = elementOffset.left + offset + offset_left,
+          right = elementOffset.left + elementSize.width + offset + offset_right;
+
+        if (bottom > viewportOffset.top &&
+          top < viewportOffset.top + viewportSize.height &&
+          right > viewportOffset.left &&
+          left < viewportOffset.left + viewportSize.width ) {
+          visiblePartX = (viewportOffset.left > left ?
+            'right' : (viewportOffset.left + viewportSize.width) < (right) ?
               'left' : 'both');
-          visiblePartY = (viewportOffset.top > elementOffset.top + distance ?
-            'bottom' : (viewportOffset.top + viewportSize.height) < (elementOffset.top + elementSize.height + distance) ?
+          visiblePartY = (viewportOffset.top > top ?
+            'bottom' : (viewportOffset.top + viewportSize.height) < (bottom) ?
               'top' : 'both');
           visiblePartsMerged = visiblePartX + "-" + visiblePartY;
           if (!inView || inView !== visiblePartsMerged) {
