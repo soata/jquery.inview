@@ -14,13 +14,14 @@
       // Browser globals
     factory(jQuery);
   }
-}(function ($) {
+}
+(function ($) {
 
   var inviewObjects = [], viewportSize, viewportOffset,
-      d = document, w = window, documentElement = d.documentElement, timer;
+    d = document, w = window, documentElement = d.documentElement, timer;
 
   $.event.special.inview = {
-    add: function(data) {
+    add: function (data) {
       inviewObjects.push({ data: data, $element: $(this), element: this });
       // Use setInterval in order to also make sure this captures elements within
       // "overflow:scroll" elements or elements that appeared in the dom tree due to
@@ -33,12 +34,12 @@
       // Don't waste cycles with an interval until we get at least one element that
       // has bound to the inview event.
       if (!timer && inviewObjects.length) {
-         timer = setInterval(checkInView, 250);
+        timer = setInterval(checkInView, 250);
       }
     },
 
-    remove: function(data) {
-      for (var i=0; i<inviewObjects.length; i++) {
+    remove: function (data) {
+      for (var i = 0; i < inviewObjects.length; i++) {
         var inviewObject = inviewObjects[i];
         if (inviewObject.element === this && inviewObject.data.guid === data.guid) {
           inviewObjects.splice(i, 1);
@@ -48,8 +49,8 @@
 
       // Clear interval when we no longer have any elements listening
       if (!inviewObjects.length) {
-         clearInterval(timer);
-         timer = null;
+        clearInterval(timer);
+        timer = null;
       }
     }
   };
@@ -67,7 +68,7 @@
           d.body; // Quirks
         size = {
           height: domObject.clientHeight,
-          width:  domObject.clientWidth
+          width: domObject.clientWidth
         };
       }
     }
@@ -77,39 +78,39 @@
 
   function getViewportOffset() {
     return {
-      top:  w.pageYOffset || documentElement.scrollTop   || d.body.scrollTop,
-      left: w.pageXOffset || documentElement.scrollLeft  || d.body.scrollLeft
+      top: w.pageYOffset || documentElement.scrollTop || d.body.scrollTop,
+      left: w.pageXOffset || documentElement.scrollLeft || d.body.scrollLeft
     };
   }
 
   function checkInView() {
     var $elements = [], elementsLength, i = 0;
 
-    $.each(inviewObjects, function(i, inviewObject) {
-      var selector  = inviewObject.data.selector,
-          $element  = inviewObject.$element;
+    $.each(inviewObjects, function (i, inviewObject) {
+      var selector = inviewObject.data.selector,
+        $element = inviewObject.$element;
       $elements.push(selector ? $element.find(selector) : $element);
     });
 
     elementsLength = $elements.length;
     if (elementsLength) {
-      viewportSize   = viewportSize   || getViewportSize();
+      viewportSize = viewportSize || getViewportSize();
       viewportOffset = viewportOffset || getViewportOffset();
 
-      for (; i<elementsLength; i++) {
+      for (; i < elementsLength; i++) {
         // Ignore elements that are not in the DOM tree
         if (!$.contains(documentElement, $elements[i][0])) {
           continue;
         }
 
-        var $element      = $($elements[i]),
-            elementSize   = { height: $element.height(), width: $element.width() },
-            elementOffset = $element.offset(),
-            inView        = $element.data('inview'),
-            distance      = $element.data('offset') === undefined ? 0 : $element.data('offset'),
-            visiblePartX,
-            visiblePartY,
-            visiblePartsMerged;
+        var $element = $($elements[i]),
+          elementSize = { height: $element.height(), width: $element.width() },
+          elementOffset = $element.offset(),
+          inView = $element.data('inview'),
+          distance = $element.data('offset') === undefined ? 0 : $element.data('offset'),
+          visiblePartX,
+          visiblePartY,
+          visiblePartsMerged;
 
         // Don't ask me why because I haven't figured out yet:
         // viewportOffset and viewportSize are sometimes suddenly null in Firefox 5.
@@ -121,15 +122,15 @@
         }
 
         if (elementOffset.top + elementSize.height + distance > viewportOffset.top &&
-            elementOffset.top < viewportOffset.top + viewportSize.height + distance &&
-            elementOffset.left + elementSize.width + distance > viewportOffset.left &&
-            elementOffset.left < viewportOffset.left + viewportSize.width + distance) {
+          elementOffset.top < viewportOffset.top + viewportSize.height + distance &&
+          elementOffset.left + elementSize.width + distance > viewportOffset.left &&
+          elementOffset.left < viewportOffset.left + viewportSize.width + distance) {
           visiblePartX = (viewportOffset.left > elementOffset.left + distance ?
             'right' : (viewportOffset.left + viewportSize.width) < (elementOffset.left + elementSize.width + distance) ?
-            'left' : 'both');
+              'left' : 'both');
           visiblePartY = (viewportOffset.top > elementOffset.top + distance ?
             'bottom' : (viewportOffset.top + viewportSize.height) < (elementOffset.top + elementSize.height + distance) ?
-            'top' : 'both');
+              'top' : 'both');
           visiblePartsMerged = visiblePartX + "-" + visiblePartY;
           if (!inView || inView !== visiblePartsMerged) {
             $element.data('inview', visiblePartsMerged).trigger('inview', [true, visiblePartX, visiblePartY]);
@@ -139,9 +140,9 @@
         }
       }
     }
-  }
+  };
 
-  $(w).on("scroll resize scrollstop", function() {
+  $(w).on("scroll resize scrollstop", function () {
     viewportSize = viewportOffset = null;
   });
 
@@ -151,4 +152,4 @@
       viewportOffset = null;
     });
   }
-})(jQuery);
+}));
