@@ -83,48 +83,60 @@
   }
 
   function checkInView() {
-    if (!inviewObjects.length) {
-      return;
-    }
+    var $elements = [], elementsLength, i = 0;
 
-    var i = 0, $elements = $.map(inviewObjects, function(inviewObject) {
+    $.each(inviewObjects, function(i, inviewObject) {
       var selector  = inviewObject.data.selector,
           $element  = inviewObject.$element;
-      return selector ? $element.find(selector) : $element;
+      $elements.push(selector ? $element.find(selector) : $element);
     });
 
-    viewportSize   = viewportSize   || getViewportSize();
-    viewportOffset = viewportOffset || getViewportOffset();
+    elementsLength = $elements.length;
+    if (elementsLength) {
+      viewportSize   = viewportSize   || getViewportSize();
+      viewportOffset = viewportOffset || getViewportOffset();
 
-    for (; i<inviewObjects.length; i++) {
-      // Ignore elements that are not in the DOM tree
-      if (!$.contains(documentElement, $elements[i][0])) {
-        continue;
-      }
-
-      var $element      = $($elements[i]),
-          elementSize   = { height: $element[0].offsetHeight, width: $element[0].offsetWidth },
-          elementOffset = $element.offset(),
-          inView        = $element.data('inview');
-
-      // Don't ask me why because I haven't figured out yet:
-      // viewportOffset and viewportSize are sometimes suddenly null in Firefox 5.
-      // Even though it sounds weird:
-      // It seems that the execution of this function is interferred by the onresize/onscroll event
-      // where viewportOffset and viewportSize are unset
-      if (!viewportOffset || !viewportSize) {
-        return;
-      }
-
-      if (elementOffset.top + elementSize.height > viewportOffset.top &&
-          elementOffset.top < viewportOffset.top + viewportSize.height &&
-          elementOffset.left + elementSize.width > viewportOffset.left &&
-          elementOffset.left < viewportOffset.left + viewportSize.width) {
-        if (!inView) {
-          $element.data('inview', true).trigger('inview', [true]);
+      for (; i<elementsLength; i++) {
+        // Ignore elements that are not in the DOM tree
+        if (!$.contains(documentElement, $elements[i][0])) {
+          continue;
         }
-      } else if (inView) {
-        $element.data('inview', false).trigger('inview', [false]);
+
+        var $element      = $($elements[i]),
+            elementSize   = { height: $element.height(), width: $element.width() },
+            elementOffset = $element.offset(),
+            inView        = $element.data('inview'),
+            distance      = $element.data('offset') === undefined ? 0 : $element.data('offset'),
+            visiblePartX,
+            visiblePartY,
+            visiblePartsMerged;
+
+        // Don't ask me why because I haven't figured out yet:
+        // viewportOffset and viewportSize are sometimes suddenly null in Firefox 5.
+        // Even though it sounds weird:
+        // It seems that the execution of this function is interferred by the onresize/onscroll event
+        // where viewportOffset and viewportSize are unset
+        if (!viewportOffset || !viewportSize) {
+          return;
+        }
+
+        if (elementOffset.top + elementSize.height + distance > viewportOffset.top &&
+            elementOffset.top < viewportOffset.top + viewportSize.height + distance &&
+            elementOffset.left + elementSize.width + distance > viewportOffset.left &&
+            elementOffset.left < viewportOffset.left + viewportSize.width + distance) {
+          visiblePartX = (viewportOffset.left > elementOffset.left + distance ?
+            'right' : (viewportOffset.left + viewportSize.width) < (elementOffset.left + elementSize.width + distance) ?
+            'left' : 'both');
+          visiblePartY = (viewportOffset.top > elementOffset.top + distance ?
+            'bottom' : (viewportOffset.top + viewportSize.height) < (elementOffset.top + elementSize.height + distance) ?
+            'top' : 'both');
+          visiblePartsMerged = visiblePartX + "-" + visiblePartY;
+          if (!inView || inView !== visiblePartsMerged) {
+            $element.data('inview', visiblePartsMerged).trigger('inview', [true, visiblePartX, visiblePartY]);
+          }
+        } else if (inView) {
+          $element.data('inview', false).trigger('inview', [false]);
+        }
       }
     }
   }
@@ -139,4 +151,4 @@
       viewportOffset = null;
     });
   }
-}));
+})(jQuery);
